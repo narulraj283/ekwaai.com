@@ -1,0 +1,462 @@
+/* ===================== CUSTOM TAILWIND STYLES ===================== */
+
+/* View Transitions */
+.view {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.view.hidden {
+    display: none;
+}
+
+/* ===================== LOADING SPINNER ===================== */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.loading-overlay.hidden {
+    display: none;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+    border-top: 4px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ===================== TOAST NOTIFICATIONS ===================== */
+.toast {
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease-out;
+    font-weight: 500;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.success {
+    background-color: #10b981;
+    color: white;
+}
+
+.toast.error {
+    background-color: #ef4444;
+    color: white;
+}
+
+.toast.info {
+    background-color: #1e40af;
+    color: white;
+}
+
+/* ===================== FLOATING ACTION BUTTON ===================== */
+.fab-pulse {
+    animation: fabPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes fabPulse {
+    0%, 100% {
+        box-shadow: 0 10px 30px rgba(5, 150, 105, 0.4);
+    }
+    50% {
+        box-shadow: 0 10px 50px rgba(5, 150, 105, 0.6);
+    }
+}
+
+/* ===================== SCROLLBAR STYLING ===================== */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Firefox scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+}
+
+/* ===================== DEPARTMENT BADGE STYLES ===================== */
+.dept-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dept-badge.marketing {
+    background-color: #8b5cf6;
+}
+
+.dept-badge.ekwalabs {
+    background-color: #3b82f6;
+}
+
+.dept-badge.pda {
+    background-color: #ec4899;
+}
+
+.dept-badge.coaching {
+    background-color: #f59e0b;
+}
+
+.dept-badge.business {
+    background-color: #6366f1;
+}
+
+.dept-badge.sales {
+    background-color: #ef4444;
+}
+
+.dept-badge.success {
+    background-color: #10b981;
+}
+
+/* ===================== STAR RATING COMPONENT ===================== */
+.star-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease, text-shadow 0.2s ease;
+    user-select: none;
+}
+
+.star-btn:hover {
+    transform: scale(1.2);
+    text-shadow: 0 0 10px rgba(30, 64, 175, 0.5);
+}
+
+.star-btn.active {
+    color: #fbbf24;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.6);
+}
+
+/* ===================== MODAL BACKDROP ===================== */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 40;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal-backdrop.hidden {
+    display: none;
+}
+
+/* ===================== WIN CARD STYLES ===================== */
+.win-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    border-left: 4px solid #059669;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.win-card:hover {
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.win-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.win-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    color: white;
+    font-size: 14px;
+}
+
+.win-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.celebrate-btn {
+    padding: 6px 12px;
+    border: 1px solid #e5e7eb;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.celebrate-btn:hover {
+    background: #f0f9ff;
+    border-color: #059669;
+    color: #059669;
+}
+
+.celebrate-btn.celebrated {
+    background: #dcfce7;
+    border-color: #059669;
+    color: #059669;
+}
+
+/* ===================== ANNOUNCEMENT CARD STYLES ===================== */
+.announcement-card {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border-left: 4px solid #1e40af;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.announcement-card h3 {
+    font-weight: bold;
+    color: #1e40af;
+    margin-bottom: 4px;
+}
+
+.announcement-card p {
+    color: #0c4a6e;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.announcement-card .timestamp {
+    font-size: 12px;
+    color: #0f766e;
+    margin-top: 8px;
+}
+
+/* ===================== FORM ELEMENTS ===================== */
+input[type="email"],
+input[type="password"],
+input[type="text"],
+input[type="url"],
+input[type="month"],
+select,
+textarea {
+    transition: all 0.2s ease;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus,
+input[type="url"]:focus,
+input[type="month"]:focus,
+select:focus,
+textarea:focus {
+    border-color: #1e40af;
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+/* ===================== BUTTON STYLES ===================== */
+button {
+    transition: all 0.2s ease;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+/* ===================== TABLE STYLES ===================== */
+table {
+    border-collapse: collapse;
+}
+
+table thead {
+    background-color: #f9fafb;
+}
+
+table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+table tbody tr:hover {
+    background-color: #f3f4f6;
+}
+
+table td,
+table th {
+    border: 1px solid #e5e7eb;
+}
+
+/* ===================== TABS ===================== */
+.login-tab,
+.admin-tab {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.login-tab.active,
+.admin-tab.active {
+    color: #1e40af;
+    border-bottom-color: #1e40af;
+}
+
+.login-tab-content,
+.admin-tab-content {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.login-tab-content.hidden,
+.admin-tab-content.hidden {
+    display: none;
+}
+
+/* ===================== SUCCESS ANIMATION ===================== */
+@keyframes successPulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-animation {
+    animation: successPulse 0.6s ease-out;
+}
+
+/* ===================== RESPONSIVE ADJUSTMENTS ===================== */
+@media (max-width: 768px) {
+    .fab-pulse {
+        display: none !important;
+    }
+
+    .win-card {
+        padding: 16px;
+    }
+
+    .dept-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+    }
+
+    table {
+        font-size: 12px;
+    }
+
+    table td,
+    table th {
+        padding: 8px 4px;
+    }
+}
+
+/* ===================== UTILITY CLASSES ===================== */
+.flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.text-clamp-2 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.shadow-soft {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-md-soft {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.border-gradient {
+    position: relative;
+}
+
+.border-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, #1e40af, #059669);
+    border-radius: 1px;
+}
