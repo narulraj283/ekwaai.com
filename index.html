@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EkwaAI - One Person. Ten Times the Impact.</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Supabase JS v2 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/custom.css">
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'ekwa-blue': '#1e40af',
+                        'ekwa-green': '#059669',
+                        'ekwa-orange': '#f59e0b',
+                        'dept-marketing': '#8b5cf6',
+                        'dept-ekwalabs': '#3b82f6',
+                        'dept-pda': '#ec4899',
+                        'dept-coaching': '#f59e0b',
+                        'dept-business': '#6366f1',
+                        'dept-sales': '#ef4444',
+                        'dept-success': '#10b981',
+                    },
+                    animation: {
+                        'pulse-soft': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Loading Spinner Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="flex items-center justify-center">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-3"></div>
+
+    <!-- ===================== LOGIN VIEW ===================== -->
+    <section id="login" class="view hidden min-h-screen bg-gradient-to-br from-ekwa-blue to-blue-900 flex items-center justify-center p-4">
+        <div class="w-full max-w-md">
+            <div class="bg-white rounded-lg shadow-2xl p-8">
+                <!-- Logo/Title -->
+                <div class="text-center mb-8">
+                    <h1 class="text-4xl font-bold text-ekwa-blue mb-2">EkwaAI</h1>
+                    <p class="text-gray-600 text-lg font-light">One Person. Ten Times the Impact.</p>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex gap-4 mb-6 border-b border-gray-200">
+                    <button class="login-tab flex-1 pb-3 font-medium text-ekwa-blue border-b-2 border-ekwa-blue" data-tab="email">
+                        Email & Password
+                    </button>
+                    <button class="login-tab flex-1 pb-3 font-medium text-gray-500" data-tab="magic">
+                        Magic Link
+                    </button>
+                </div>
+
+                <!-- Email & Password Tab -->
+                <div id="email-tab" class="login-tab-content">
+                    <form id="login-form" class="space-y-4" onsubmit="handleLoginForm(event)">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input
+                                type="email"
+                                id="login-email"
+                                placeholder="your.name@ekwa.com"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue"
+                                required
+                            >
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                            <input
+                                type="password"
+                                id="login-password"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue"
+                                required
+                            >
+                        </div>
+
+                        <div class="flex items-center">
+                            <input
+                                type="checkbox"
+                                id="rememberMe"
+                                class="w-4 h-4 text-ekwa-blue rounded focus:ring-ekwa-blue"
+                            >
+                            <label for="rememberMe" class="ml-2 text-sm text-gray-700">Remember me</label>
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="w-full bg-ekwa-blue text-white font-medium py-2 rounded-lg hover:bg-blue-800 transition duration-200"
+                        >
+                            Login
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Magic Link Tab -->
+                <div id="magic-tab" class="login-tab-content hidden">
+                    <form id="magicLinkForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input
+                                type="email"
+                                id="magicEmailInput"
+                                placeholder="your.name@ekwa.com"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue"
+                                required
+                            >
+                        </div>
+
+                        <button
+                            type="submit"
+                            class="w-full bg-ekwa-green text-white font-medium py-2 rounded-lg hover:bg-green-700 transition duration-200"
+                        >
+                            Send Magic Link
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Error Message -->
+                <div id="loginError" class="mt-6 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg hidden text-sm"></div>
+
+                <!-- Info Note -->
+                <div class="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg text-sm text-gray-700">
+                    <strong>Note:</strong> Only @ekwa.com and @ekwa.co email addresses are accepted
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== DASHBOARD VIEW ===================== -->
+    <section id="dashboard" class="view hidden min-h-screen bg-gray-50">
+        <!-- Top Navigation -->
+        <nav class="bg-gray-900 text-white shadow-lg sticky top-0 z-40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl font-bold text-ekwa-blue">â¡</span>
+                        <span class="text-xl font-bold">EkwaAI</span>
+                    </div>
+
+                    <!-- Desktop Navigation -->
+                    <div class="hidden md:flex items-center gap-8">
+                        <a href="#" onclick="navigateTo(ROUTES.DASHBOARD)" class="hover:text-ekwa-blue transition">Dashboard</a>
+                        <a href="#" onclick="navigateTo(ROUTES.WINS)" class="hover:text-ekwa-blue transition">Wins</a>
+                        <a href="#" onclick="navigateTo(ROUTES.PROFILE)" class="hover:text-ekwa-blue transition">My Profile</a>
+                        <div id="roleLinksNav" class="flex gap-8">
+                            <a id="nav-admin" href="#" onclick="navigateTo(ROUTES.ADMIN)" class="hover:text-ekwa-blue transition" style="display: none;">Admin</a>
+                            <a id="nav-manager" href="#" onclick="navigateTo(ROUTES.MANAGER)" class="hover:text-ekwa-blue transition" style="display: none;">Manager</a>
+                        </div>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="user-menu-btn" class="flex items-center gap-2 hover:bg-gray-800 px-3 py-2 rounded-lg transition">
+                            <div id="user-avatar" class="w-8 h-8 rounded-full bg-ekwa-blue flex items-center justify-center text-sm font-bold">U</div>
+                            <span id="user-name" class="text-sm">User</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+                            </svg>
+                        </button>
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded-lg shadow-xl">
+                            <a href="#" onclick="navigateTo(ROUTES.PROFILE)" class="block px-4 py-2 hover:bg-gray-100 transition">My Profile</a>
+                            <button id="logout-btn" class="w-full text-left px-4 py-2 hover:bg-gray-100 transition text-red-600">Logout</button>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-toggle" class="md:hidden">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mobile Navigation Menu -->
+                <div id="nav-menu" class="hidden md:hidden">
+                    <a href="#" onclick="navigateTo(ROUTES.DASHBOARD)" class="block px-4 py-2 hover:bg-gray-800 transition">Dashboard</a>
+                    <a href="#" onclick="navigateTo(ROUTES.WINS)" class="block px-4 py-2 hover:bg-gray-800 transition">Wins</a>
+                    <a href="#" onclick="navigateTo(ROUTES.PROFILE)" class="block px-4 py-2 hover:bg-gray-800 transition">My Profile</a>
+                    <a id="nav-admin-mobile" href="#" onclick="navigateTo(ROUTES.ADMIN)" class="block px-4 py-2 hover:bg-gray-800 transition" style="display: none;">Admin</a>
+                    <a id="nav-manager-mobile" href="#" onclick="navigateTo(ROUTES.MANAGER)" class="block px-4 py-2 hover:bg-gray-800 transition" style="display: none;">Manager</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex gap-6 p-4 md:p-8 max-w-7xl mx-auto">
+            <!-- Left Sidebar -->
+            <aside class="hidden lg:block w-64 space-y-6">
+                <!-- Quick Stats Card -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h3 class="font-bold text-gray-900 mb-4">Quick Stats</h3>
+                    <div id="quick-stats" class="space-y-4">
+                        <div>
+                            <p class="text-gray-600 text-sm">Wins This Month</p>
+                            <p id="winsThisMonth" class="text-2xl font-bold text-ekwa-blue">0</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Active Members</p>
+                            <p id="activeMembers" class="text-2xl font-bold text-ekwa-green">0</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Your Multiplier Trend</p>
+                            <p id="multiplierTrend" class="text-2xl font-bold text-ekwa-orange">â 1.2x</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main id="dashboard-content" class="flex-1 space-y-6">
+                <!-- What's New Card -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">What's New</h2>
+                    <div id="announcements-container" class="space-y-4">
+                        <p class="text-gray-500 italic">No announcements yet</p>
+                    </div>
+                </div>
+
+                <!-- Recent Wins Feed -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Recent Wins</h2>
+                    <div id="recent-wins-container" class="space-y-4">
+                        <p class="text-gray-500 italic">No wins yet. Be the first to share!</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Floating Action Button -->
+        <button
+            id="shareWinFAB"
+            onclick="navigateTo(ROUTES.SHARE_WIN)"
+            class="fixed bottom-8 right-8 w-16 h-16 bg-ekwa-green text-white rounded-full shadow-lg hover:bg-green-700 transition flex items-center justify-center text-2xl fab-pulse md:flex hidden"
+            title="Share a Win"
+        >
+            â­
+        </button>
+
+        <!-- Mobile Share Button -->
+        <button
+            onclick="navigateTo(ROUTES.SHARE_WIN)"
+            class="md:hidden fixed bottom-4 left-4 right-4 bg-ekwa-green text-white py-3 rounded-lg font-medium shadow-lg hover:bg-green-700 transition"
+        >
+            â­ Share a Win
+        </button>
+    </section>
+
+    <!-- ===================== WINS FEED VIEW ===================== -->
+    <section id="wins" class="view hidden min-h-screen bg-gray-50 p-4 md:p-8">
+        <div id="wins-feed-content" class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Wins Feed</h1>
+                <p class="text-gray-600">Celebrate the wins across EkwaAI</p>
+            </div>
+
+            <!-- Filter Bar -->
+            <form id="wins-filter-form" class="bg-white rounded-lg shadow p-4 mb-6 space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                        <select name="department" id="winsFilterDept" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue">
+                            <option value="">All Departments</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Ekwalabs">Ekwalabs</option>
+                            <option value="PDA">PDA</option>
+                            <option value="Coaching">Coaching</option>
+                            <option value="Business">Business</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Customer Success">Customer Success</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
+                        <select name="date-range" id="winsFilterDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue">
+                            <option value="">All Time</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="quarter">This Quarter</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <input
+                            type="text"
+                            name="search"
+                            id="winsFilterSearch"
+                            placeholder="Search wins..."
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue"
+                        >
+                    </div>
+                </div>
+            </form>
+
+            <!-- Wins List -->
+            <div id="wins-feed-list" class="space-y-4 mb-6">
+                <p class="text-gray-500 italic text-center py-8">No wins found</p>
+            </div>
+
+            <!-- Load More Button -->
+            <div class="text-center">
+                <button id="load-more-btn" class="px-6 py-2 bg-ekwa-blue text-white rounded-lg hover:bg-blue-800 transition hidden">
+                    Load More Wins
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== SHARE A WIN VIEW ===================== -->
+    <section id="share-win" class="view hidden min-h-screen bg-gray-50 p-4 md:p-8">
+        <div class="max-w-2xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Share a Win</h1>
+                <p class="text-gray-600">Tell us about your achievement and how AI helped</p>
+            </div>
+
+            <!-- Form Card -->
+            <div id="share-win-form-container" class="bg-white rounded-lg shadow p-8">
+                <form id="share-win-form" class="space-y-6">
+                    <!-- Department Selector -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                        <select id="win-department" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                            <option value="">Select Department</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Ekwalabs">Ekwalabs</option>
+                            <option value="PDA">PDA</option>
+                            <option value="Coaching">Coaching</option>
+                            <option value="Business">Business</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Customer Success">Customer Success</option>
+                        </select>
+                    </div>
+
+                    <!-- Link Field -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Link to Your Work</label>
+                        <input
+                            type="url"
+                            id="win-link"
+                            placeholder="https://..."
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue"
+                        >
+                        <p class="text-xs text-gray-500 mt-1">Optional: Link to the work, document, or project</p>
+                    </div>
+
+                    <!-- Summary -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Summary</label>
+                        <textarea
+                            id="win-summary"
+                            placeholder="Describe what you did and how AI helped..."
+                            rows="6"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue resize-none"
+                            required
+                        ></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Be specific about the impact and AI involvement</p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button
+                        type="submit"
+                        class="w-full bg-ekwa-green text-white font-medium py-3 rounded-lg hover:bg-green-700 transition duration-200"
+                    >
+                        Share Win
+                    </button>
+                </form>
+
+                <!-- Success Message -->
+                <div id="share-win-success" class="hidden mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+                    <div class="text-4xl mb-2">â¨</div>
+                    <h3 class="font-bold text-green-900 mb-1">Win Shared!</h3>
+                    <p class="text-green-800 text-sm">Your achievement has been celebrated. Great work!</p>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="mt-6 text-center">
+                <button onclick="navigateTo(ROUTES.DASHBOARD)" class="text-ekwa-blue hover:underline">â Back to Dashboard</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== ADMIN PANEL VIEW ===================== -->
+    <section id="admin" class="view hidden min-h-screen bg-gray-50 p-4 md:p-8">
+        <div id="admin-content" class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Admin Panel</h1>
+                <p class="text-gray-600">Manage users, announcements, approvals, and audit data</p>
+            </div>
+
+            <!-- Admin Tabs -->
+            <div class="flex gap-4 mb-6 border-b border-gray-200 flex-wrap">
+                <button class="admin-tab px-4 py-2 font-medium border-b-2 border-ekwa-blue text-ekwa-blue" data-tab="users">Users</button>
+                <button class="admin-tab px-4 py-2 font-medium border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="announcements">Announcements</button>
+                <button class="admin-tab px-4 py-2 font-medium border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="bonuses">Bonus Approvals</button>
+                <button class="admin-tab px-4 py-2 font-medium border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="referrals">Referrals</button>
+                <button class="admin-tab px-4 py-2 font-medium border-b-2 border-transparent text-gray-600 hover:text-gray-900" data-tab="audit">Audit</button>
+            </div>
+
+            <!-- USERS TAB -->
+            <div id="users-tab" class="admin-tab-content">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Manage Users</h2>
+                        <button onclick="toggleForm('addUserForm')" class="px-4 py-2 bg-ekwa-blue text-white rounded-lg hover:bg-blue-800 transition">+ Add User</button>
+                    </div>
+
+                    <!-- Add User Form -->
+                    <div id="addUserForm" class="hidden mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 class="font-bold text-gray-900 mb-4">Add New User</h3>
+                        <form id="addUserFormElement" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                                    <input type="text" id="newUserName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                    <input type="email" id="newUserEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                                    <select id="newUserDept" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                                        <option value="">Select Department</option>
+                                        <option value="Marketing">Marketing</option>
+                                        <option value="Ekwalabs">Ekwalabs</option>
+                                        <option value="PDA">PDA</option>
+                                        <option value="Coaching">Coaching</option>
+                                        <option value="Business">Business</option>
+                                        <option value="Sales">Sales</option>
+                                        <option value="Customer Success">Customer Success</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                                    <select id="newUserRole" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                                        <option value="">Select Role</option>
+                                        <option value="member">Member</option>
+                                        <option value="manager">Manager</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="flex gap-4">
+                                <button type="submit" class="px-6 py-2 bg-ekwa-blue text-white rounded-lg hover:bg-blue-800 transition">Save User</button>
+                                <button type="button" onclick="toggleForm('addUserForm')" class="px-6 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Users Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead class="bg-gray-100 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Name</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Email</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Department</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Role</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Status</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Joined</th>
+                                    <th class="px-4 py-3 text-left font-semibold text-gray-900">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTableBody" class="divide-y divide-gray-200">
+                                <tr>
+                                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">No users yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ANNOUNCEMENTS TAB -->
+            <div id="announcements-tab" class="admin-tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Manage Announcements</h2>
+                        <button onclick="toggleForm('createAnnounceForm')" class="px-4 py-2 bg-ekwa-blue text-white rounded-lg hover:bg-blue-800 transition">+ Create Announcement</button>
+                    </div>
+
+                    <!-- Create Announcement Form -->
+                    <div id="createAnnounceForm" class="hidden mb-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+                        <h3 class="font-bold text-gray-900 mb-4">Create New Announcement</h3>
+                        <form id="createAnnounceFormElement" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                                <input type="text" id="announceTitle" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Content</label>
+                                <textarea id="announceContent" rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue resize-none" required></textarea>
+                            </div>
+                            <div class="flex gap-4">
+                                <button type="submit" class="px-6 py-2 bg-ekwa-blue text-white rounded-lg hover:bg-blue-800 transition">Post Announcement</button>
+                                <button type="button" onclick="toggleForm('createAnnounceForm')" class="px-6 py-2 bg-gray-300 text-gray-900 rounded-lg hover:bg-gray-400 transition">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Announcements List -->
+                    <div id="announcementsListAdmin" class="space-y-4">
+                        <p class="text-gray-500 italic">No announcements yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BONUS APPROVALS TAB -->
+            <div id="bonuses-tab" class="admin-tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Pending Bonus Recommendations</h2>
+                    <div id="bonus-recommendations-list" class="space-y-4">
+                        <p class="text-gray-500 italic">No pending bonus recommendations</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REFERRALS TAB -->
+            <div id="referrals-tab" class="admin-tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Pending Manager Referrals</h2>
+                    <div id="referralsApprovalsList" class="space-y-4">
+                        <p class="text-gray-500 italic">No pending referrals</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUDIT TAB -->
+            <div id="audit-tab" class="admin-tab-content hidden">
+                <div class="bg-white rounded-lg shadow p-6 text-center py-12">
+                    <div class="text-5xl mb-4">ð</div>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-2">AI Audit Dashboard</h2>
+                    <p class="text-gray-600 mb-6">Coming Soon</p>
+                    <p class="text-gray-500 text-sm max-w-md mx-auto">Claude will provide automated audit reports analyzing win quality, AI leverage, and team performance metrics across EkwaAI.</p>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="mt-8 text-center">
+                <button onclick="navigateTo(ROUTES.DASHBOARD)" class="text-ekwa-blue hover:underline">â Back to Dashboard</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== MANAGER DASHBOARD VIEW ===================== -->
+    <section id="manager" class="view hidden min-h-screen bg-gray-50 p-4 md:p-8">
+        <div id="manager-content" class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">Manager Dashboard</h1>
+                <p class="text-gray-600">Evaluate team members, recommend bonuses, and manage referrals</p>
+            </div>
+
+            <!-- My Team Section -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">My Team</h2>
+                <div id="team-members-list" class="space-y-3">
+                    <p class="text-gray-500 italic">No team members assigned</p>
+                </div>
+            </div>
+
+            <!-- Monthly Evaluation Form -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Monthly Evaluation</h2>
+                <form id="monthlyEvalForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Team Member</label>
+                            <select id="evalMember" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                                <option value="">Select Member</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Month</label>
+                            <input type="month" id="evalMonth" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Multiplier (1x - 20x)</label>
+                            <div class="flex items-center gap-4">
+                                <input type="range" id="evalMultiplier" min="1" max="20" value="1" class="flex-1" oninput="updateMultiplierDisplay()">
+                                <span id="multiplierDisplay" class="text-2xl font-bold text-ekwa-blue w-12 text-right">1x</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quality Score (1-5 Stars)</label>
+                            <div class="flex gap-2" id="qualityStars">
+                                <button type="button" class="star-btn text-3xl" data-value="1">â</button>
+                                <button type="button" class="star-btn text-3xl" data-value="2">â</button>
+                                <button type="button" class="star-btn text-3xl" data-value="3">â</button>
+                                <button type="button" class="star-btn text-3xl" data-value="4">â</button>
+                                <button type="button" class="star-btn text-3xl" data-value="5">â</button>
+                            </div>
+                            <input type="hidden" id="qualityScore" value="0">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">AI Leverage Assessment</label>
+                        <textarea id="aiLeverageNotes" placeholder="How effectively did this team member leverage AI tools?" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue resize-none"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                        <textarea id="evalNotes" placeholder="Any additional feedback or comments..." rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-ekwa-blue text-white font-medium py-3 rounded-lg hover:bg-blue-800 transition">Submit Evaluation</button>
+                </form>
+            </div>
+
+            <!-- Quarterly Bonus Recommendation -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Quarterly Bonus Recommendation</h2>
+                <form id="bonusRecForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Team Member</label>
+                            <select id="bonusMember" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                                <option value="">Select Member</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Quarter</label>
+                            <select id="bonusQuarter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                                <option value="">Select Quarter</option>
+                                <option value="Q1">Q1</option>
+                                <option value="Q2">Q2</option>
+                                <option value="Q3">Q3</option>
+                                <option value="Q4">Q4</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Recommended Tier</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center">
+                                <input type="radio" name="bonusTier" value="5x" class="w-4 h-4 text-ekwa-blue" required>
+                                <span class="ml-2 text-gray-700">5x Multiplier</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="radio" name="bonusTier" value="10x" class="w-4 h-4 text-ekwa-blue">
+                                <span class="ml-2 text-gray-700">10x Multiplier</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Justification</label>
+                        <textarea id="bonusJustification" placeholder="Explain why this team member deserves this bonus tier..." rows="5" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue resize-none" required></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-ekwa-green text-white font-medium py-3 rounded-lg hover:bg-green-700 transition">Submit Recommendation</button>
+                </form>
+            </div>
+
+            <!-- Refer Team Member -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Refer a Team Member</h2>
+                <form id="referralForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Member Name</label>
+                            <input type="text" id="referralName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                            <input type="email" id="referralEmail" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Reason for Referral</label>
+                        <textarea id="referralReason" placeholder="Why do you recommend this person for advancement?" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ekwa-blue resize-none" required></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-ekwa-orange text-white font-medium py-3 rounded-lg hover:bg-yellow-500 transition">Submit Referral</button>
+                </form>
+            </div>
+
+            <!-- Evaluation History -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Evaluation History</h2>
+                <div id="manager-evaluations-list" class="space-y-4">
+                    <p class="text-gray-500 italic">No evaluations submitted yet</p>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="mt-8 text-center">
+                <button onclick="navigateTo(ROUTES.DASHBOARD)" class="text-ekwa-blue hover:underline">â Back to Dashboard</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== PROFILE VIEW ===================== -->
+    <section id="profile" class="view hidden min-h-screen bg-gray-50 p-4 md:p-8">
+        <div id="profile-content" class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-900 mb-2">My Profile</h1>
+                <p class="text-gray-600">View your information, wins history, and evaluations</p>
+            </div>
+
+            <!-- User Info Card - populated by JavaScript -->
+            <div id="profile-info" class="mb-8">
+                <!-- Profile card will be rendered here by app.js -->
+            </div>
+
+            <!-- My Wins History -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">My Wins History</h2>
+                <div id="my-wins-list" class="space-y-4">
+                    <p class="text-gray-500 italic">You haven't shared any wins yet</p>
+                </div>
+            </div>
+
+            <!-- My Evaluation History -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">My Evaluation History</h2>
+                <div id="my-evaluations-list" class="space-y-4">
+                    <p class="text-gray-500 italic">No evaluations yet</p>
+                </div>
+            </div>
+
+            <!-- Multiplier Trend Chart -->
+            <div class="bg-white rounded-lg shadow p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Multiplier Trend</h2>
+                <div id="multiplierChart" class="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <p class="text-gray-500">Chart placeholder - awaiting evaluation data</p>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="mt-8 text-center">
+                <button onclick="navigateTo(ROUTES.DASHBOARD)" class="text-ekwa-blue hover:underline">â Back to Dashboard</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================== SCRIPTS ===================== -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/manager.js"></script>
+</body>
+</html>
