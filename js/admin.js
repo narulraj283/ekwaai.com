@@ -48,7 +48,7 @@ async function checkAdminAccess() {
  * Initialize admin panel - main entry point
  */
 async function initAdminPanel() {
-  initSupabaseClient();
+
 
   const hasAccess = await checkAdminAccess();
   if (!hasAccess) return;
