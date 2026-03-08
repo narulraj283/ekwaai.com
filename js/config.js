@@ -4,7 +4,11 @@ const SUPABASE_URL = 'https://ouxqzvryrfunlijebisr.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im91eHF6dnJ5cmZ1bmxpamViaXNyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwMDAxMjMsImV4cCI6MjA4ODU3NjEyM30.iI6qyBzwtnP9-ak5veibkwPtzBaxSAbnCK-U6srPp1I';
 
 // Initialize Supabase client
-var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// CDN loads library as window.supabase; we replace it with the initialized client
+(function() {
+  const lib = window.supabase;
+  window.supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+})();
 
 // App configuration
 const CONFIG = {
@@ -135,3 +139,24 @@ function getErrorMessage(error) {
   }
   return 'An unexpected error occurred. Please try again.';
 }
+
+// ============================================================================
+// DYNAMIC SCRIPT LOADER (failsafe for CDN cache serving old HTML)
+// ============================================================================
+(function() {
+  const requiredScripts = ['js/auth.js', 'js/app.js', 'js/admin.js', 'js/manager.js'];
+  const loadedSrcs = Array.from(document.querySelectorAll('script[src]')).map(s => {
+    try { return new URL(s.src).pathname.replace(/^\//, ''); } catch(e) { return s.getAttribute('src'); }
+  });
+
+  requiredScripts.forEach(function(scriptPath) {
+    const alreadyLoaded = loadedSrcs.some(s => s === scriptPath || s.endsWith('/' + scriptPath));
+    if (!alreadyLoaded) {
+      console.log('[EkwaAI] Dynamic loading: ' + scriptPath);
+      var script = document.createElement('script');
+      script.src = scriptPath + '?v=' + Date.now();
+      script.async = false; // preserve execution order
+      document.body ? document.body.appendChild(script) : document.documentElement.appendChild(script);
+    }
+  });
+})();
