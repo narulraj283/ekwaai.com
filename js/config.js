@@ -141,69 +141,104 @@ function getErrorMessage(error) {
 }
 
 // ============================================================================
-// DYNAMIC SCRIPT LOADER (failsafe for CDN cache serving old HTML)
+// FAILSAFE: Ensure app initializes and login shows (handles CDN cache issues)
+// Waits for DOM to be ready, then checks if app scripts loaded. If not,
+// dynamically loads them. Either way, ensures login view is shown if no user.
 // ============================================================================
 (function() {
-  var requiredScripts = ['js/auth.js', 'js/app.js', 'js/admin.js', 'js/manager.js'];
-  var loadedSrcs = Array.from(document.querySelectorAll('script[src]')).map(function(s) {
-    try { return new URL(s.src).pathname.replace(/^\//, ''); } catch(e) { return s.getAttribute('src'); }
-  });
+  var REQUIRED_SCRIPTS = ['js/auth.js', 'js/app.js', 'js/admin.js', 'js/manager.js'];
 
-  var needsDynamic = false;
-  var lastScript = null;
+  function ensureAppReady() {
+    console.log('[EkwaAI] ensureAppReady: checking if scripts loaded...');
 
-  requiredScripts.forEach(function(scriptPath) {
-    var alreadyLoaded = loadedSrcs.some(function(s) { return s === scriptPath || s.endsWith('/' + scriptPath); });
-    if (!alreadyLoaded) {
-      needsDynamic = true;
-      console.log('[EkwaAI] Dynamic loading: ' + scriptPath);
+    // Check if app.js defined initApp (means scripts executed successfully)
+    if (typeof initApp === 'function') {
+      console.log('[EkwaAI] Scripts already loaded, app.js DOMContentLoaded should handle init');
+      // Still run failsafe auth check after a short delay
+      setTimeout(failsafeAuthCheck, 500);
+      return;
+    }
+
+    // Scripts not loaded - dynamically inject them
+    console.log('[EkwaAI] Scripts NOT loaded, injecting dynamically...');
+    var loaded = 0;
+    var total = REQUIRED_SCRIPTS.length;
+
+    REQUIRED_SCRIPTS.forEach(function(scriptPath) {
       var script = document.createElement('script');
       script.src = scriptPath + '?v=' + Date.now();
-      script.async = false;
-      var parent = document.body || document.documentElement;
-      parent.appendChild(script);
-      lastScript = script;
-    }
-  });
-
-  // If scripts were dynamically loaded, DOMContentLoaded may have already
-  // fired by the time they execute. Set up a fallback initialization.
-  if (needsDynamic && lastScript) {
-    lastScript.addEventListener('load', function() {
-      console.log('[EkwaAI] Dynamic scripts loaded, running fallback init');
-      // Wait a tick for all scripts to execute
-      setTimeout(function() {
-        // Check if auth state needs initialization
-        if (typeof initAuth === 'function') {
-          initAuth();
+      script.onload = function() {
+        loaded++;
+        console.log('[EkwaAI] Loaded ' + loaded + '/' + total + ': ' + scriptPath);
+        if (loaded === total) {
+          console.log('[EkwaAI] All scripts loaded dynamically');
+          setTimeout(function() {
+            if (typeof initAuth === 'function') { initAuth(); }
+            failsafeAuthCheck();
+          }, 200);
         }
-        // Check auth and show appropriate view
-        if (typeof supabase !== 'undefined' && supabase.auth) {
-          supabase.auth.getUser().then(function(result) {
-            var user = result.data && result.data.user;
-            var error = result.error;
-            console.log('[EkwaAI] Fallback auth check - user:', user ? user.email : 'none');
-            if (error || !user) {
-              // Show login view
-              var loginView = document.getElementById('login');
-              if (loginView) {
-                loginView.classList.remove('hidden');
-                loginView.style.display = 'flex';
-                console.log('[EkwaAI] Login view shown via fallback');
-              }
-            } else if (typeof initApp === 'function') {
-              initApp();
-            }
-          }).catch(function(err) {
-            console.error('[EkwaAI] Fallback auth error:', err);
-            var loginView = document.getElementById('login');
-            if (loginView) {
-              loginView.classList.remove('hidden');
-              loginView.style.display = 'flex';
-            }
-          });
-        }
-      }, 100);
+      };
+      script.onerror = function() {
+        loaded++;
+        console.error('[EkwaAI] Failed to load: ' + scriptPath);
+        if (loaded === total) { failsafeAuthCheck(); }
+      };
+      document.head.appendChild(script);
     });
+  }
+
+  function failsafeAuthCheck() {
+    console.log('[EkwaAI] Running failsafe auth check...');
+    var loginView = document.getElementById('login');
+    if (loginView && !loginView.classList.contains('hidden')) {
+      console.log('[EkwaAI] Login already visible, skipping');
+      return;
+    }
+    var views = document.querySelectorAll('.view');
+    var anyVisible = false;
+    views.forEach(function(v) {
+      if (!v.classList.contains('hidden') && v.id !== 'login') {
+        anyVisible = true;
+      }
+    });
+    if (anyVisible) {
+      console.log('[EkwaAI] App already showing a view, skipping');
+      return;
+    }
+
+    if (typeof supabase !== 'undefined' && supabase.auth) {
+      supabase.auth.getUser().then(function(result) {
+        var user = result.data && result.data.user;
+        console.log('[EkwaAI] Failsafe auth: user=' + (user ? user.email : 'none'));
+        if (!user) {
+          showLoginView();
+        } else if (typeof initApp === 'function') {
+          initApp();
+        } else {
+          showLoginView();
+        }
+      }).catch(function(err) {
+        console.error('[EkwaAI] Failsafe auth error:', err);
+        showLoginView();
+      });
+    } else {
+      showLoginView();
+    }
+  }
+
+  function showLoginView() {
+    var loginView = document.getElementById('login');
+    if (loginView) {
+      loginView.classList.remove('hidden');
+      loginView.style.display = 'flex';
+      console.log('[EkwaAI] Login view shown via failsafe');
+    }
+  }
+
+  // Wait for DOM to be ready before checking
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ensureAppReady);
+  } else {
+    ensureAppReady();
   }
 })();
