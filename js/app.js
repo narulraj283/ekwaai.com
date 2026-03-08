@@ -633,7 +633,7 @@ function renderWinCard(win) {
       </div>
       <div class="win-footer">
         <button class="celebrate-btn" data-win-id="${win.id}">
-          <span class="celebrate-icon">ð</span>
+          <span class="celebrate-icon">Ã°ÂÂÂ</span>
           <span class="celebrate-count">${win.celebration_count || 0}</span>
         </button>
       </div>
@@ -1547,14 +1547,14 @@ document.addEventListener('DOMContentLoaded', () => {
   supabase.auth.getUser().then(({ data: { user }, error }) => {
     if (error || !user) {
       // Show login view
-      const loginView = document.getElementById('view-login') || document.getElementById('login');
+      const loginView = document.getElementById('login');
       if (loginView) {
         loginView.style.display = 'block';
       }
       // Hide other views
       Object.values(VIEW_IDS).forEach((viewId) => {
         const el = document.getElementById(viewId);
-        if (el && viewId !== 'view-login') el.style.display = 'none';
+        if (el && viewId !== 'login') el.style.display = 'none';
       });
     } else {
       initApp();
