@@ -144,19 +144,66 @@ function getErrorMessage(error) {
 // DYNAMIC SCRIPT LOADER (failsafe for CDN cache serving old HTML)
 // ============================================================================
 (function() {
-  const requiredScripts = ['js/auth.js', 'js/app.js', 'js/admin.js', 'js/manager.js'];
-  const loadedSrcs = Array.from(document.querySelectorAll('script[src]')).map(s => {
+  var requiredScripts = ['js/auth.js', 'js/app.js', 'js/admin.js', 'js/manager.js'];
+  var loadedSrcs = Array.from(document.querySelectorAll('script[src]')).map(function(s) {
     try { return new URL(s.src).pathname.replace(/^\//, ''); } catch(e) { return s.getAttribute('src'); }
   });
 
+  var needsDynamic = false;
+  var lastScript = null;
+
   requiredScripts.forEach(function(scriptPath) {
-    const alreadyLoaded = loadedSrcs.some(s => s === scriptPath || s.endsWith('/' + scriptPath));
+    var alreadyLoaded = loadedSrcs.some(function(s) { return s === scriptPath || s.endsWith('/' + scriptPath); });
     if (!alreadyLoaded) {
+      needsDynamic = true;
       console.log('[EkwaAI] Dynamic loading: ' + scriptPath);
       var script = document.createElement('script');
       script.src = scriptPath + '?v=' + Date.now();
-      script.async = false; // preserve execution order
-      document.body ? document.body.appendChild(script) : document.documentElement.appendChild(script);
+      script.async = false;
+      var parent = document.body || document.documentElement;
+      parent.appendChild(script);
+      lastScript = script;
     }
   });
+
+  // If scripts were dynamically loaded, DOMContentLoaded may have already
+  // fired by the time they execute. Set up a fallback initialization.
+  if (needsDynamic && lastScript) {
+    lastScript.addEventListener('load', function() {
+      console.log('[EkwaAI] Dynamic scripts loaded, running fallback init');
+      // Wait a tick for all scripts to execute
+      setTimeout(function() {
+        // Check if auth state needs initialization
+        if (typeof initAuth === 'function') {
+          initAuth();
+        }
+        // Check auth and show appropriate view
+        if (typeof supabase !== 'undefined' && supabase.auth) {
+          supabase.auth.getUser().then(function(result) {
+            var user = result.data && result.data.user;
+            var error = result.error;
+            console.log('[EkwaAI] Fallback auth check - user:', user ? user.email : 'none');
+            if (error || !user) {
+              // Show login view
+              var loginView = document.getElementById('login');
+              if (loginView) {
+                loginView.classList.remove('hidden');
+                loginView.style.display = 'flex';
+                console.log('[EkwaAI] Login view shown via fallback');
+              }
+            } else if (typeof initApp === 'function') {
+              initApp();
+            }
+          }).catch(function(err) {
+            console.error('[EkwaAI] Fallback auth error:', err);
+            var loginView = document.getElementById('login');
+            if (loginView) {
+              loginView.classList.remove('hidden');
+              loginView.style.display = 'flex';
+            }
+          });
+        }
+      }, 100);
+    });
+  }
 })();
